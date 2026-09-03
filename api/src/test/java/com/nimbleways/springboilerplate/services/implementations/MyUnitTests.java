@@ -2,8 +2,10 @@ package com.nimbleways.springboilerplate.services.implementations;
 
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.ProductRepository;
+import com.nimbleways.springboilerplate.services.products.ProductService;
 import com.nimbleways.springboilerplate.utils.Annotations.UnitTest;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +14,9 @@ import org.mockito.Mockito;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
 
 @ExtendWith(SpringExtension.class)
 @UnitTest
@@ -23,6 +28,14 @@ public class MyUnitTests {
     private ProductRepository productRepository;
     @InjectMocks 
     private ProductService productService;
+
+    /**
+     *  On initialise avec une liste vide pour ce test unitaire
+     */
+    @BeforeEach
+    void setUp() {
+        productService = new ProductService(List.of(), productRepository, notificationService);
+    }
 
     @Test
     public void test() {
@@ -39,5 +52,11 @@ public class MyUnitTests {
         assertEquals(15, product.getLeadTime());
         Mockito.verify(productRepository, Mockito.times(1)).save(product);
         Mockito.verify(notificationService, Mockito.times(1)).sendDelayNotification(product.getLeadTime(), product.getName());
+    }
+
+    @Test
+    public void processProduct_whenTypeUnsupported_shouldThrowIllegalArgumentException() {
+        Product product = new Product(null, 0, 0, "UNKNOWN", "Item", null, null, null);
+        assertThrows(IllegalArgumentException.class, () -> productService.processProduct(product));
     }
 }
